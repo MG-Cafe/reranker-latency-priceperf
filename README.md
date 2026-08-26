@@ -173,14 +173,53 @@ Takeaways:
 - On latency-based cost per 1000 requests (single pair, seq 512) the TPU and G4 are cheapest at low
   concurrency; e.g. at conc 1 TPU $0.00555, G4 $0.00582, H200 $0.0111, B200 $0.02148 per 1k requests.
 
-Heavier workloads (batch-32-per-request) and long context (seq 1024) are in
-`charts/concurrency_tables.md`. For a rough p90 < 100 ms SLA: single-pair requests hold p90 < 100 ms
-through conc 8 on all four chips; a bs32-per-request workload only holds p90 < 100 ms at conc 1 on
-B200 and H200 (the others exceed it), i.e. large per-request batches should be kept to low concurrency
-or split into smaller requests.
-
 ![Single-pair p50 vs concurrency](charts/concurrency_seq512_rb1_p50.png)
 ![Single-pair throughput vs concurrency](charts/concurrency_seq512_rb1_qps.png)
+
+### Full concurrency tables (p50 / p90 / p99 ms | req/s | $/1k requests)
+
+Single-pair requests (seq 512):
+
+| Conc | TPU v6e | B200 | H200 | G4 |
+|---:|---|---|---|---|
+| 1 | 12.4/12.6/12.8 \| 77.6 \| $0.00555 | 11.1/11.8/13.2 \| 87.2 \| $0.02148 | 10.4/10.9/13.1 \| 93.4 \| $0.0111 | 6.7/6.9/7.3 \| 142.9 \| $0.00582 |
+| 2 | 15.5/15.6/15.8 \| 125.6 \| $0.00692 | 14.1/14.4/16.8 \| 137.7 \| $0.02724 | 13.1/13.3/16.1 \| 148.2 \| $0.01399 | 8.5/8.5/8.6 \| 229.5 \| $0.00733 |
+| 4 | 28.5/28.8/29.1 \| 137.9 \| $0.01273 | 14.8/17.4/21.3 \| 253.3 \| $0.02856 | 13.6/15.2/20.1 \| 277.3 \| $0.01459 | 11.7/11.8/14.6 \| 332.3 \| $0.01011 |
+| 8 | 30.7/31.7/32.6 \| 248.8 \| $0.01375 | 15.5/22.0/24.2 \| 453.7 \| $0.03 | 14.9/21.2/28.0 \| 456.9 \| $0.01591 | 18.8/19.3/20.1 \| 410.1 \| $0.01626 |
+
+Batch-32-per-request (seq 512):
+
+| Conc | TPU v6e | B200 | H200 | G4 |
+|---:|---|---|---|---|
+| 1 | 187.8/189.6/191.4 \| 5.1 \| $0.08399 | 80.1/83.5/87.6 \| 11.6 \| $0.15471 | 92.3/96.2/100.4 \| 10.1 \| $0.09866 | 105.8/107.0/107.7 \| 9.0 \| $0.09144 |
+| 2 | 251.5/252.9/254.6 \| 7.7 \| $0.11249 | 97.4/100.7/104.4 \| 19.3 \| $0.18797 | 99.3/102.1/119.9 \| 19.0 \| $0.10615 | 134.5/158.7/161.4 \| 14.3 \| $0.11616 |
+| 4 | 509.4/512.9/514.4 \| 7.7 \| $0.22781 | 138.0/259.0/264.7 \| 21.7 \| $0.26637 | 182.0/188.3/223.7 \| 21.3 \| $0.19465 | 248.5/279.9/280.3 \| 15.1 \| $0.21468 |
+| 8 | 1024.6/1028.5/1030.5 \| 7.7 \| $0.45822 | 309.2/462.8/474.6 \| 22.8 \| $0.59695 | 346.5/395.5/492.9 \| 22.4 \| $0.37061 | 533.2/534.2/534.5 \| 15.1 \| $0.46064 |
+
+Long context, batch-32-per-request (seq 1024) - the "model length" sweep, conc 1/2/4:
+
+| Conc | TPU v6e | B200 | H200 | G4 |
+|---:|---|---|---|---|
+| 1 | 356.0/357.2/412.9 \| 2.6 \| $0.15919 | 145.8/151.4/155.3 \| 6.4 \| $0.28141 | 175.5/178.7/180.5 \| 5.4 \| $0.18766 | 209.7/212.0/214.1 \| 4.5 \| $0.18117 |
+| 2 | 480.3/482.0/483.1 \| 4.0 \| $0.21482 | 184.3/189.0/193.3 \| 10.2 \| $0.35583 | 183.4/187.3/212.3 \| 10.2 \| $0.19617 | 253.8/286.6/286.9 \| 7.3 \| $0.21929 |
+| 4 | 977.1/983.1/1012.2 \| 4.0 \| $0.43699 | 268.8/505.9/532.7 \| 11.1 \| $0.51886 | 348.9/352.6/495.3 \| 11.0 \| $0.37317 | 550.3/551.1/551.4 \| 7.3 \| $0.47541 |
+
+(seq-1024 conc-8 was not run for rb32: at conc 4 latencies are already ~0.3-1.0 s/request, so conc-8
+adds no useful operating point and is very slow/timeout-prone. seq-512 covers conc 1-8.)
+
+Highest concurrency holding p90 < 100 ms (rough SLA): single-pair seq512 holds through conc 8 on all
+four chips; bs32 seq512 holds only at conc 1 on B200 and H200; bs32 seq1024 does not meet p90<100ms on
+any chip at any tested concurrency (long, heavy requests). Full numbers: `charts/concurrency_tables.md`.
+
+## Sequence-length ("model length") sweep
+
+The seq-1024 rows above are the long-context / model-length comparison the customer asked about:
+holding the request shape at 32 pairs, going from 512 to 1024 tokens per pair roughly doubles the
+per-request latency on every chip (as expected for ~2x the compute), and the price/perf ranking is
+preserved (TPU cheapest per request/pair, then G4/H200, then B200). Example at conc 1, bs32:
+seq512 -> seq1024 p50 goes B200 80->146 ms, H200 92->175 ms, G4 106->210 ms, TPU 188->356 ms.
+So increasing sequence length scales cost/latency proportionally but does not change which chip wins.
+
 
 ## Reproduce
 
