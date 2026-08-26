@@ -22,7 +22,31 @@ Prices (per chip-hour): TPU v6e $1.61, B200 $6.95, H200 $3.85, G4 (1x RTX PRO 60
 All four accelerators are measured on a single chip each (G4 = 1x NVIDIA RTX PRO 6000).
 
 
+## Metrics and formulas (how every number is computed)
+
+Each measured "request" is one `llm.score()` call that scores all N pairs in the batch in one shot;
+we run it `iters` times (50 for the latency sweep) and time the whole call each time. From those timings:
+
+- request latency percentiles (ms): sort the per-request times; p50 = median, p90/p95/p99 = tail.
+  `p50 = percentile(times, 50)`, etc. This is the time for ONE request of N pairs (e.g. bs=32 = one
+  32-pair request), not per pair and not N separate requests.
+- request_latency_ms_mean = average of those per-request times.
+- per_pair_latency_ms_mean = request_latency_ms_mean / batch_size.
+- throughput (pairs/s) = batch_size / (request_latency_ms_mean / 1000). Derived from the mean latency
+  of the same batched call, e.g. B200 bs=32: 32 / (72.12/1000) ~= 443 pairs/s (json value 438.642 uses
+  the exact mean).
+- Throughput-based price/perf, USD per 1M pairs = (price_per_hour / 3600) / pairs_per_s * 1e6.
+- Latency-based price/perf, USD per 1000 requests = (price_per_hour / 3600) * (p50_ms / 1000) * 1000.
+- Concurrency sweep (served): each request is a single pair (or a batch of rb pairs) sent over HTTP to
+  `vllm serve /v1/rerank`; C requests are kept in flight. qps = iters / wall_seconds; latency
+  percentiles are of the per-request times; USD/1k uses the same latency formula above.
+- Throughput-match: v6e chips to match a GPU = ceil(GPU pairs/s / one-v6e pairs/s); fleet $/hr = chips * $1.61.
+- Latency-match: pick the largest v6e batch whose p50 <= the GPU's p50, then compare USD/1k requests.
+
+Prices per chip-hour used everywhere: TPU v6e $1.61, B200 $6.95, H200 $3.85, G4 $3.11.
+
 ## Headline (batch size 32, seq 512, no caching)
+
 
 | Device | p50 latency (ms) | p99 latency (ms) | pairs/s | $/1M pairs (throughput) | $/1000 req (latency) |
 |---|---:|---:|---:|---:|---:|
