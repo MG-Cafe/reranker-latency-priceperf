@@ -77,7 +77,8 @@ tp_vals = [cpm(d["price"], d["by"][BS]["throughput_pairs_per_s"]) for d in have_
 plt.figure(figsize=(8,5)); bars = plt.bar(labels, tp_vals, color=colors)
 for b, v in zip(bars, tp_vals): plt.annotate(f"${v:.4f}", (b.get_x()+b.get_width()/2, v), textcoords="offset points", xytext=(0,4), ha="center", fontsize=8)
 plt.ylabel("USD per 1M pairs (bs=32, lower=better)")
-plt.title("Throughput-based price/perf at bs=32")
+plt.title("Throughput-based price/perf at bs=32 (cost = (price/hr / 3600) / pairs_per_s x 1e6)")
+
 plt.xticks(rotation=12, ha="right"); plt.grid(True, axis="y", ls=":", alpha=0.5); plt.tight_layout()
 plt.savefig(os.path.join(CH, "priceperf_throughput_bs32.png"), dpi=150); plt.close()
 
