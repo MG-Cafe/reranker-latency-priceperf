@@ -1,0 +1,88 @@
+{
+  "model": "Qwen/Qwen3-Reranker-0.6B",
+  "load_mode": "orig_override",
+  "device": "gpu 1x H200",
+  "runner": "pooling (vLLM score API)",
+  "prefix_caching": false,
+  "seq_len_target": 512,
+  "max_model_len": 1024,
+  "iters_per_bs": 50,
+  "model_load_s": 56.383,
+  "timestamp_utc": "2026-08-25T00:17:30Z",
+  "by_batch": [
+    {
+      "batch_size": 1,
+      "request_latency_ms_p50": 11.533,
+      "request_latency_ms_p90": 12.276,
+      "request_latency_ms_p95": 12.39,
+      "request_latency_ms_p99": 16.001,
+      "request_latency_ms_mean": 11.739,
+      "per_pair_latency_ms_mean": 11.7391,
+      "throughput_pairs_per_s": 85.185
+    },
+    {
+      "batch_size": 2,
+      "request_latency_ms_p50": 20.153,
+      "request_latency_ms_p90": 21.078,
+      "request_latency_ms_p95": 22.718,
+      "request_latency_ms_p99": 23.35,
+      "request_latency_ms_mean": 20.386,
+      "per_pair_latency_ms_mean": 10.1931,
+      "throughput_pairs_per_s": 98.105
+    },
+    {
+      "batch_size": 4,
+      "request_latency_ms_p50": 23.098,
+      "request_latency_ms_p90": 23.835,
+      "request_latency_ms_p95": 25.318,
+      "request_latency_ms_p99": 26.119,
+      "request_latency_ms_mean": 22.049,
+      "per_pair_latency_ms_mean": 5.5122,
+      "throughput_pairs_per_s": 181.414
+    },
+    {
+      "batch_size": 8,
+      "request_latency_ms_p50": 30.696,
+      "request_latency_ms_p90": 33.225,
+      "request_latency_ms_p95": 34.663,
+      "request_latency_ms_p99": 34.913,
+      "request_latency_ms_mean": 30.457,
+      "per_pair_latency_ms_mean": 3.8071,
+      "throughput_pairs_per_s": 262.667
+    },
+    {
+      "batch_size": 16,
+      "request_latency_ms_p50": 47.73,
+      "request_latency_ms_p90": 50.55,
+      "request_latency_ms_p95": 52.296,
+      "request_latency_ms_p99": 54.406,
+      "request_latency_ms_mean": 48.15,
+      "per_pair_latency_ms_mean": 3.0094,
+      "throughput_pairs_per_s": 332.293
+    },
+    {
+      "batch_size": 32,
+      "request_latency_ms_p50": 87.551,
+      "request_latency_ms_p90": 92.03,
+      "request_latency_ms_p95": 93.519,
+      "request_latency_ms_p99": 98.34,
+      "request_latency_ms_mean": 88.245,
+      "per_pair_latency_ms_mean": 2.7577,
+      "throughput_pairs_per_s": 362.625
+    },
+    {
+      "batch_size": 64,
+      "request_latency_ms_p50": 169.198,
+      "request_latency_ms_p90": 175.462,
+      "request_latency_ms_p95": 177.579,
+      "request_latency_ms_p99": 181.593,
+      "request_latency_ms_mean": 170.167,
+      "per_pair_latency_ms_mean": 2.6589,
+      "throughput_pairs_per_s": 376.102
+    }
+  ],
+  "pair_tokens_actual": 530,
+  "sample_scores": [
+    0.4696
+  ]
+}
