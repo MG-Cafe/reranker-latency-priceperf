@@ -58,6 +58,19 @@ plt.title("Real-time request latency vs batch (seq 512, no prefix cache)")
 plt.grid(True, which="both", ls=":", alpha=0.5); plt.legend(); plt.tight_layout()
 plt.savefig(os.path.join(CH, "latency_vs_batch.png"), dpi=150); plt.close()
 
+# ---------- chart: throughput (pairs/s) vs batch ----------
+plt.figure(figsize=(8.5,5.5))
+for d in loaded:
+    xs = [bs for bs in allbs if bs in d["by"]]
+    ys = [d["by"][bs]["throughput_pairs_per_s"] for bs in xs]
+    plt.plot(xs, ys, marker="s", color=d["color"], label=d["label"])
+plt.xscale("log", base=2); plt.xlabel("Batch size (pairs per real-time request)")
+plt.ylabel("Throughput (pairs/s)")
+plt.title("Throughput vs batch (seq 512, no prefix cache)")
+plt.grid(True, which="both", ls=":", alpha=0.5); plt.legend(); plt.tight_layout()
+plt.savefig(os.path.join(CH, "throughput_vs_batch.png"), dpi=150); plt.close()
+
+
 BS = 32
 have_bs32 = [d for d in loaded if BS in d["by"]]
 

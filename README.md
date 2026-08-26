@@ -65,9 +65,14 @@ How to read it:
 
 ## Latency and price/perf views
 
-![Request latency vs batch](charts/latency_vs_batch.png)
+Price/perf at the bs=32 operating point (bar charts):
 ![Latency-based price/perf at bs=32](charts/priceperf_latency_bs32.png)
 ![Throughput-based price/perf at bs=32](charts/priceperf_throughput_bs32.png)
+
+The line charts below plot exactly the two tables that follow (p50 latency and pairs/s vs batch size):
+
+![Request latency p50 vs batch size](charts/latency_vs_batch.png)
+![Throughput (pairs/s) vs batch size](charts/throughput_vs_batch.png)
 
 Request latency p50 (ms) by batch size:
 
@@ -75,6 +80,7 @@ Request latency p50 (ms) by batch size:
 |------:|--------:|-----:|-----:|---:|
 | 1 | 10.793 | 11.451 | 11.533 | 7.104 |
 | 2 | 20.423 | 19.653 | 20.153 | 9.221 |
+
 | 4 | 31.673 | 23.388 | 23.098 | 18.122 |
 | 8 | 50.295 | 28.720 | 30.696 | 29.281 |
 | 16 | 92.316 | 42.255 | 47.730 | 52.677 |
@@ -95,17 +101,54 @@ Throughput (pairs/s) by batch size:
 
 ### Per-batch-size charts (all four chips)
 
-For each batch size (1, 2, 4, 8, 16, 32, 64) we also emit four grouped bar charts across all chips,
-in `charts/by_batch/`: latency p50 (`latency_p50_bs<N>.png`), throughput (`throughput_bs<N>.png`),
-throughput price/perf (`priceperf_throughput_bs<N>.png`), and latency price/perf
-(`priceperf_latency_bs<N>.png`). Example at bs=8:
+For each batch size (1, 2, 4, 8, 16, 32, 64) we emit four grouped bar charts across all chips:
+latency p50, throughput (pairs/s), throughput price/perf ($/1M pairs), and latency price/perf
+($/1000 requests). All are shown below.
 
-![Latency p50 at bs=8](charts/by_batch/latency_p50_bs8.png)
-![Throughput at bs=8](charts/by_batch/throughput_bs8.png)
-![Latency price/perf at bs=8](charts/by_batch/priceperf_latency_bs8.png)
-![Throughput price/perf at bs=8](charts/by_batch/priceperf_throughput_bs8.png)
+#### Batch size 1
+![Latency p50 bs1](charts/by_batch/latency_p50_bs1.png)
+![Throughput bs1](charts/by_batch/throughput_bs1.png)
+![Throughput price/perf bs1](charts/by_batch/priceperf_throughput_bs1.png)
+![Latency price/perf bs1](charts/by_batch/priceperf_latency_bs1.png)
+
+#### Batch size 2
+![Latency p50 bs2](charts/by_batch/latency_p50_bs2.png)
+![Throughput bs2](charts/by_batch/throughput_bs2.png)
+![Throughput price/perf bs2](charts/by_batch/priceperf_throughput_bs2.png)
+![Latency price/perf bs2](charts/by_batch/priceperf_latency_bs2.png)
+
+#### Batch size 4
+![Latency p50 bs4](charts/by_batch/latency_p50_bs4.png)
+![Throughput bs4](charts/by_batch/throughput_bs4.png)
+![Throughput price/perf bs4](charts/by_batch/priceperf_throughput_bs4.png)
+![Latency price/perf bs4](charts/by_batch/priceperf_latency_bs4.png)
+
+#### Batch size 8
+![Latency p50 bs8](charts/by_batch/latency_p50_bs8.png)
+![Throughput bs8](charts/by_batch/throughput_bs8.png)
+![Throughput price/perf bs8](charts/by_batch/priceperf_throughput_bs8.png)
+![Latency price/perf bs8](charts/by_batch/priceperf_latency_bs8.png)
+
+#### Batch size 16
+![Latency p50 bs16](charts/by_batch/latency_p50_bs16.png)
+![Throughput bs16](charts/by_batch/throughput_bs16.png)
+![Throughput price/perf bs16](charts/by_batch/priceperf_throughput_bs16.png)
+![Latency price/perf bs16](charts/by_batch/priceperf_latency_bs16.png)
+
+#### Batch size 32
+![Latency p50 bs32](charts/by_batch/latency_p50_bs32.png)
+![Throughput bs32](charts/by_batch/throughput_bs32.png)
+![Throughput price/perf bs32](charts/by_batch/priceperf_throughput_bs32.png)
+![Latency price/perf bs32](charts/by_batch/priceperf_latency_bs32.png)
+
+#### Batch size 64
+![Latency p50 bs64](charts/by_batch/latency_p50_bs64.png)
+![Throughput bs64](charts/by_batch/throughput_bs64.png)
+![Throughput price/perf bs64](charts/by_batch/priceperf_throughput_bs64.png)
+![Latency price/perf bs64](charts/by_batch/priceperf_latency_bs64.png)
 
 Notes:
+
 - At batch size 1 (strict one-at-a-time serving) the G4 is actually the fastest single-request device
 
   (p50 7.104 ms), ahead of TPU v6e (10.793), B200 (11.451) and H200 (11.533). So for low-concurrency
@@ -174,10 +217,22 @@ Takeaways:
 - On latency-based cost per 1000 requests (single pair, seq 512) the TPU and G4 are cheapest at low
   concurrency; e.g. at conc 1 TPU $0.00555, G4 $0.00582, H200 $0.0111, B200 $0.02148 per 1k requests.
 
+All six concurrency charts:
+
+Single-pair (seq 512):
 ![Single-pair p50 vs concurrency](charts/concurrency_seq512_rb1_p50.png)
 ![Single-pair throughput vs concurrency](charts/concurrency_seq512_rb1_qps.png)
 
+Batch-32-per-request (seq 512):
+![bs32 p50 vs concurrency](charts/concurrency_seq512_rb32_p50.png)
+![bs32 throughput vs concurrency](charts/concurrency_seq512_rb32_qps.png)
+
+Batch-32-per-request, long context (seq 1024):
+![bs32 seq1024 p50 vs concurrency](charts/concurrency_seq1024_rb32_p50.png)
+![bs32 seq1024 throughput vs concurrency](charts/concurrency_seq1024_rb32_qps.png)
+
 ### Full concurrency tables (p50 / p90 / p99 ms | req/s | $/1k requests)
+
 
 Single-pair requests (seq 512):
 
