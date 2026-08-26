@@ -93,8 +93,21 @@ Throughput (pairs/s) by batch size:
 | 32 | 182.667 | 438.642 | 362.625 | 319.721 |
 | 64 | 190.484 | 460.704 | 376.102 | 321.662 |
 
+### Per-batch-size charts (all four chips)
+
+For each batch size (1, 2, 4, 8, 16, 32, 64) we also emit four grouped bar charts across all chips,
+in `charts/by_batch/`: latency p50 (`latency_p50_bs<N>.png`), throughput (`throughput_bs<N>.png`),
+throughput price/perf (`priceperf_throughput_bs<N>.png`), and latency price/perf
+(`priceperf_latency_bs<N>.png`). Example at bs=8:
+
+![Latency p50 at bs=8](charts/by_batch/latency_p50_bs8.png)
+![Throughput at bs=8](charts/by_batch/throughput_bs8.png)
+![Latency price/perf at bs=8](charts/by_batch/priceperf_latency_bs8.png)
+![Throughput price/perf at bs=8](charts/by_batch/priceperf_throughput_bs8.png)
+
 Notes:
 - At batch size 1 (strict one-at-a-time serving) the G4 is actually the fastest single-request device
+
   (p50 7.104 ms), ahead of TPU v6e (10.793), B200 (11.451) and H200 (11.533). So for low-concurrency
   real-time reranking, G4 gives the best raw latency and TPU v6e the best cost.
 - The B200 pulls ahead at larger batches, as expected from its higher parallel throughput.

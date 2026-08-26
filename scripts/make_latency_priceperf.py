@@ -82,7 +82,43 @@ plt.title("Throughput-based price/perf at bs=32 (cost = (price/hr / 3600) / pair
 plt.xticks(rotation=12, ha="right"); plt.grid(True, axis="y", ls=":", alpha=0.5); plt.tight_layout()
 plt.savefig(os.path.join(CH, "priceperf_throughput_bs32.png"), dpi=150); plt.close()
 
+# ---------- per-batch-size bar charts (all chips): 4 metrics for EACH batch size ----------
+# For every batch size present, emit 4 grouped bar charts across all chips:
+#   latency p50 (ms), throughput (pairs/s), $/1M pairs, $/1000 requests.
+os.makedirs(os.path.join(CH, "by_batch"), exist_ok=True)
+def bar_by_batch(bs, metric_fn, ylabel, title, fname, fmt):
+    devs = [d for d in loaded if bs in d["by"]]
+    if not devs: return
+    labs = [d["label"] for d in devs]; cols = [d["color"] for d in devs]
+    vals = [metric_fn(d) for d in devs]
+    plt.figure(figsize=(8,5)); bars = plt.bar(labs, vals, color=cols)
+    for b, v in zip(bars, vals):
+        plt.annotate(fmt.format(v), (b.get_x()+b.get_width()/2, v), textcoords="offset points",
+                     xytext=(0,4), ha="center", fontsize=8)
+    plt.ylabel(ylabel); plt.title(title); plt.xticks(rotation=12, ha="right")
+    plt.grid(True, axis="y", ls=":", alpha=0.5); plt.tight_layout()
+    plt.savefig(os.path.join(CH, "by_batch", fname), dpi=150); plt.close()
+
+for bs in allbs:
+    bar_by_batch(bs, lambda d: d["by"][bs]["request_latency_ms_p50"],
+                 f"Request latency p50 (ms) at bs={bs} (lower=better)",
+                 f"Latency p50 at batch size {bs} (seq 512, no cache)",
+                 f"latency_p50_bs{bs}.png", "{:.1f}")
+    bar_by_batch(bs, lambda d: d["by"][bs]["throughput_pairs_per_s"],
+                 f"Throughput pairs/s at bs={bs} (higher=better)",
+                 f"Throughput at batch size {bs} (seq 512, no cache)",
+                 f"throughput_bs{bs}.png", "{:.1f}")
+    bar_by_batch(bs, lambda d: cpm(d["price"], d["by"][bs]["throughput_pairs_per_s"]),
+                 f"USD per 1M pairs at bs={bs} (lower=better)",
+                 f"Throughput price/perf at batch size {bs}",
+                 f"priceperf_throughput_bs{bs}.png", "${:.4f}")
+    bar_by_batch(bs, lambda d: cost_per_1k(d["price"], d["by"][bs]["request_latency_ms_p50"]),
+                 f"USD per 1000 requests at bs={bs} (lower=better)",
+                 f"Latency price/perf at batch size {bs}",
+                 f"priceperf_latency_bs{bs}.png", "${:.5f}")
+
 # ---------- tables ----------
+
 L = []
 L.append("# Latency-first price/performance across accelerators\n")
 L.append("Real-time serving; prefix caching OFF; synthetic seq-len 512; fresh content per request "
