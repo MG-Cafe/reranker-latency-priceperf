@@ -118,11 +118,29 @@ for d in have_bs32:
              f"${cost_per_1k(d['price'], r['request_latency_ms_p50'])} |")
 L.append("")
 
-# ---------- LATENCY-MATCH: to hit a GPU's per-request p50 latency, which TPU v6e config meets it
-# and what does it cost? (customer asks: match the GPU's LATENCY, not throughput.) ----------
+# ---------- THROUGHPUT-MATCH: how many v6e chips to match a GPU's throughput, and the fleet cost ----------
 tpu = next((d for d in loaded if d["label"].startswith("TPU")), None)
 if tpu:
+    for gpu in [d for d in loaded if not d["label"].startswith("TPU")]:
+        L.append(f"## Throughput-match: v6e chips to match {gpu['label']} throughput\n")
+        L.append("chips = ceil(GPU pairs/s / one-v6e pairs/s); v6e fleet $/hr = chips x $1.61. This shows "
+                 "the cost to match the GPU's aggregate throughput with TPU chips (note: adding chips "
+                 "scales throughput, not single-request latency).")
+        L.append("")
+        L.append(f"| Batch | {gpu['label']} pairs/s | 1x v6e pairs/s | v6e chips to match | v6e fleet $/hr | {gpu['label']} $/hr | TPU fleet cheaper? |")
+        L.append("|------:|-----------:|---------------:|-------------------:|---------------:|--------:|:--|")
+        for bs in allbs:
+            if bs in gpu["by"] and bs in tpu["by"]:
+                gpps = gpu["by"][bs]["throughput_pairs_per_s"]; tpps = tpu["by"][bs]["throughput_pairs_per_s"]
+                chips = math.ceil(gpps / tpps); fleet = round(chips * tpu["price"], 2)
+                L.append(f"| {bs} | {gpps} | {tpps} | {chips} | ${fleet} | ${gpu['price']} | {'yes' if fleet < gpu['price'] else 'no'} |")
+        L.append("")
+
+# ---------- LATENCY-MATCH: to hit a GPU's per-request p50 latency, which TPU v6e config meets it
+# and what does it cost? (customer asks: match the GPU's LATENCY, not throughput.) ----------
+if tpu:
     tbs = sorted(tpu["by"])
+
     for gpu in [d for d in loaded if not d["label"].startswith("TPU")]:
         L.append(f"## Latency-match: TPU v6e meeting {gpu['label']} request latency\n")
         L.append("For each GPU batch size we take its p50 request latency, then find the fastest v6e "

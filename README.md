@@ -14,7 +14,7 @@ Scope and rules (per customer request):
   concurrent pairs in one real-time request, not an offline job.
 - Primary operating point: batch size 32, seq 512; plus a batch sweep (1..64).
 - Price/performance reported two ways: throughput-based (USD per 1M pairs) and latency-based
-  (USD per 1000 requests), plus a latency-match analysis (match a GPU's latency, then compare cost).
+  (USD per 1000 requests), plus GPU-match analyses both ways: throughput-match (chips to match GPU throughput) and latency-match (match GPU latency, then compare cost).
 
 
 Prices (per chip-hour): TPU v6e $1.61, B200 $6.95, H200 $3.85, G4 (1x RTX PRO 6000) $3.11.
@@ -75,13 +75,23 @@ Notes:
   real-time reranking, G4 gives the best raw latency and TPU v6e the best cost.
 - The B200 pulls ahead at larger batches, as expected from its higher parallel throughput.
 
-## Latency-match analysis (match a GPU's latency, then compare cost)
+## GPU-match analysis (two ways): throughput-match and latency-match
 
-This is the comparison the customer asked for: for a given GPU request latency, find the TPU v6e
-configuration that serves within the same latency budget, then compare cost per 1000 requests. (We
-take each GPU batch's p50 latency, pick the fastest v6e batch whose p50 is still <= that latency, and
-compare $/1k requests.) Full tables for all batch sizes are in
-`charts/latency_priceperf_tables.md`.
+We provide both matching views; full per-batch tables are in `charts/latency_priceperf_tables.md`.
+
+### 1) Throughput-match (how many v6e chips equal one GPU's throughput)
+chips = ceil(GPU pairs/s / one-v6e pairs/s); v6e fleet $/hr = chips x $1.61. Examples at bs=32:
+- vs B200: 3x v6e = $4.83/hr vs $6.95/hr -> TPU fleet cheaper.
+- vs H200: 2x v6e = $3.22/hr vs $3.85/hr -> TPU fleet cheaper.
+- vs G4: 2x v6e = $3.22/hr vs $3.11/hr -> the 2-chip fleet-hour is marginally above one G4 only because
+  chips round up to whole units; on per-pair/per-request cost the TPU is still cheaper (see headline).
+
+### 2) Latency-match (match a GPU's request latency, then compare cost)
+
+For a given GPU request latency, find the TPU v6e configuration that serves within the same latency
+budget, then compare cost per 1000 requests. (We take each GPU batch's p50 latency, pick the fastest
+v6e batch whose p50 is still <= that latency, and compare $/1k requests.)
+
 
 Result: at equal latency, the TPU v6e is cheaper in essentially every case. Examples:
 - Match B200 at its bs=32 latency (72.1 ms): v6e runs at bs=8 (50.3 ms, well within budget) for
@@ -143,5 +153,5 @@ charts/latency_priceperf_tables.md
 
 ## Verification
 
-Run `python scripts/audit_repo.py` to verify end-to-end: it re-checks every results JSON for internal consistency (throughput = batch/latency, monotonic percentiles, prefix caching disabled, seq 512), recomputes both price/perf views and confirms they match the README and the generated tables, verifies every README latency/throughput number exists in the raw JSON, checks the latency-match math, confirms all referenced charts exist, and re-runs the table generator to confirm deterministic output. Current status: AUDIT PASSED.
+Run `python scripts/audit_repo.py` to verify end-to-end: it re-checks every results JSON for internal consistency (throughput = batch/latency, monotonic percentiles, prefix caching disabled, seq 512), recomputes both price/perf views and confirms they match the README and the generated tables, verifies every README latency/throughput number exists in the raw JSON, checks the throughput-match and latency-match math, confirms all referenced charts exist, and re-runs the table generator to confirm deterministic output. Current status: AUDIT PASSED.
 

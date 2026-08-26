@@ -35,6 +35,48 @@ Real-time serving; prefix caching OFF; synthetic seq-len 512; fresh content per 
 | H200 (1 GPU) | 87.551 | 98.34 | 362.625 | $2.9492 | $0.09363 |
 | G4 RTX PRO 6000 (1 GPU) | 100.025 | 101.605 | 319.721 | $2.702 | $0.08641 |
 
+## Throughput-match: v6e chips to match B200 (1 GPU) throughput
+
+chips = ceil(GPU pairs/s / one-v6e pairs/s); v6e fleet $/hr = chips x $1.61. This shows the cost to match the GPU's aggregate throughput with TPU chips (note: adding chips scales throughput, not single-request latency).
+
+| Batch | B200 (1 GPU) pairs/s | 1x v6e pairs/s | v6e chips to match | v6e fleet $/hr | B200 (1 GPU) $/hr | TPU fleet cheaper? |
+|------:|-----------:|---------------:|-------------------:|---------------:|--------:|:--|
+| 1 | 85.498 | 92.239 | 1 | $1.61 | $6.95 | yes |
+| 2 | 116.606 | 100.221 | 2 | $3.22 | $6.95 | yes |
+| 4 | 183.052 | 118.104 | 2 | $3.22 | $6.95 | yes |
+| 8 | 282.684 | 155.212 | 2 | $3.22 | $6.95 | yes |
+| 16 | 379.786 | 172.784 | 3 | $4.83 | $6.95 | yes |
+| 32 | 438.642 | 182.667 | 3 | $4.83 | $6.95 | yes |
+| 64 | 460.704 | 190.484 | 3 | $4.83 | $6.95 | yes |
+
+## Throughput-match: v6e chips to match H200 (1 GPU) throughput
+
+chips = ceil(GPU pairs/s / one-v6e pairs/s); v6e fleet $/hr = chips x $1.61. This shows the cost to match the GPU's aggregate throughput with TPU chips (note: adding chips scales throughput, not single-request latency).
+
+| Batch | H200 (1 GPU) pairs/s | 1x v6e pairs/s | v6e chips to match | v6e fleet $/hr | H200 (1 GPU) $/hr | TPU fleet cheaper? |
+|------:|-----------:|---------------:|-------------------:|---------------:|--------:|:--|
+| 1 | 85.185 | 92.239 | 1 | $1.61 | $3.85 | yes |
+| 2 | 98.105 | 100.221 | 1 | $1.61 | $3.85 | yes |
+| 4 | 181.414 | 118.104 | 2 | $3.22 | $3.85 | yes |
+| 8 | 262.667 | 155.212 | 2 | $3.22 | $3.85 | yes |
+| 16 | 332.293 | 172.784 | 2 | $3.22 | $3.85 | yes |
+| 32 | 362.625 | 182.667 | 2 | $3.22 | $3.85 | yes |
+| 64 | 376.102 | 190.484 | 2 | $3.22 | $3.85 | yes |
+
+## Throughput-match: v6e chips to match G4 RTX PRO 6000 (1 GPU) throughput
+
+chips = ceil(GPU pairs/s / one-v6e pairs/s); v6e fleet $/hr = chips x $1.61. This shows the cost to match the GPU's aggregate throughput with TPU chips (note: adding chips scales throughput, not single-request latency).
+
+| Batch | G4 RTX PRO 6000 (1 GPU) pairs/s | 1x v6e pairs/s | v6e chips to match | v6e fleet $/hr | G4 RTX PRO 6000 (1 GPU) $/hr | TPU fleet cheaper? |
+|------:|-----------:|---------------:|-------------------:|---------------:|--------:|:--|
+| 1 | 139.995 | 92.239 | 2 | $3.22 | $3.11 | no |
+| 2 | 178.58 | 100.221 | 2 | $3.22 | $3.11 | no |
+| 4 | 229.313 | 118.104 | 2 | $3.22 | $3.11 | no |
+| 8 | 273.581 | 155.212 | 2 | $3.22 | $3.11 | no |
+| 16 | 303.367 | 172.784 | 2 | $3.22 | $3.11 | no |
+| 32 | 319.721 | 182.667 | 2 | $3.22 | $3.11 | no |
+| 64 | 321.662 | 190.484 | 2 | $3.22 | $3.11 | no |
+
 ## Latency-match: TPU v6e meeting B200 (1 GPU) request latency
 
 For each GPU batch size we take its p50 request latency, then find the fastest v6e config (largest batch) whose p50 is still <= that GPU latency, i.e. the v6e can serve within the same latency budget. We then compare cost per 1000 requests at that budget.
