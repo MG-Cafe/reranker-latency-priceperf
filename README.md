@@ -18,9 +18,8 @@ Scope and rules (per customer request):
 
 Prices (per chip-hour): TPU v6e $1.61, B200 $6.95, H200 $3.85, G4 (1x RTX PRO 6000) $3.11.
 
-All four accelerators are now measured. (G4 = NVIDIA RTX PRO 6000 Blackwell, 96 GB; it required the
-GCP g4-standard-48 machine type + Ubuntu 24.04 accelerator image with the nvidia-595 driver to
-initialize, per the AI-Hypercomputer gpu-recipes G4 guidance.)
+All four accelerators are measured on a single chip each (G4 = 1x NVIDIA RTX PRO 6000).
+
 
 ## Headline (batch size 32, seq 512, no caching)
 
@@ -103,9 +102,8 @@ python scripts/reranker_latency_bench.py --device-label "tpu v6e-1 (torchax)" --
 
 GPUs (B200 / H200 / G4), one GPU each:
 ```bash
-# G4 requires machine type g4-standard-48 and the Ubuntu 24.04 accelerator image (nvidia-595) so the
-# RTX PRO 6000 initializes; B200/H200 use their standard accelerator VMs.
 sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq build-essential g++ python3.12-dev
+
 source "$HOME/.local/bin/env"; uv venv --python 3.12 "$HOME/gpuvenv"; source "$HOME/gpuvenv/bin/activate"
 uv pip install vllm transformers
 CUDA_VISIBLE_DEVICES=0 python scripts/reranker_latency_bench.py --device-label "gpu 1x <B200|H200|G4>" \
