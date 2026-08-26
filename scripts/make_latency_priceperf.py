@@ -144,7 +144,7 @@ for bs in allbs:
     L.append(row)
 L.append("")
 
-L.append(f"## Both price/perf views at batch size {BS} (customer operating point)\n")
+L.append(f"## Both price/perf views at batch size {BS}\n")
 L.append("| Device | p50 latency (ms) | p99 latency (ms) | pairs/s | $/1M pairs (throughput) | $/1000 req (latency) |")
 L.append("|---|---:|---:|---:|---:|---:|")
 for d in have_bs32:
@@ -173,7 +173,7 @@ if tpu:
         L.append("")
 
 # ---------- LATENCY-MATCH: to hit a GPU's per-request p50 latency, which TPU v6e config meets it
-# and what does it cost? (customer asks: match the GPU's LATENCY, not throughput.) ----------
+# and what does it cost? (match the GPU LATENCY, not throughput.) ----------
 if tpu:
     tbs = sorted(tpu["by"])
 

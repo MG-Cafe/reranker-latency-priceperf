@@ -26,7 +26,7 @@ Real-time serving; prefix caching OFF; synthetic seq-len 512; fresh content per 
 | 32 | 182.667 | 438.642 | 362.625 | 319.721 |
 | 64 | 190.484 | 460.704 | 376.102 | 321.662 |
 
-## Both price/perf views at batch size 32 (customer operating point)
+## Both price/perf views at batch size 32
 
 | Device | p50 latency (ms) | p99 latency (ms) | pairs/s | $/1M pairs (throughput) | $/1000 req (latency) |
 |---|---:|---:|---:|---:|---:|

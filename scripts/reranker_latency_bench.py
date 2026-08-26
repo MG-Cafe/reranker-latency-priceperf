@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """LATENCY-first reranker benchmark (real-time, no caching) - device-agnostic (TPU torchax + GPU).
 
-Customer requirements baked in:
+Benchmark rules baked in:
   * Real-time serving, not offline batch: we time each score() call as one in-flight request.
   * NO caching to avoid inflating results: prefix caching disabled (enable_prefix_caching=False),
     and every request uses FRESH randomized content so KV/prefix reuse cannot help.

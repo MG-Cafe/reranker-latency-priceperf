@@ -5,7 +5,7 @@ price/performance rather than offline batch throughput. TPU runs on the public J
 (`tpu-inference`); GPUs run on CUDA vLLM. Every request is timed on-device (in-process `score()`),
 so results are compute latency and do not depend on VM region.
 
-Scope and rules (per customer request):
+Scope and rules:
 - Framework: vLLM torchax on TPU (no torch-tpu); CUDA vLLM on GPU.
 - No caching: prefix caching disabled (`enable_prefix_caching=False`); every request uses freshly
   randomized content so KV/prefix reuse cannot inflate results.
@@ -166,8 +166,9 @@ Single-pair requests (seq 512), p50 latency and requests/s at concurrency 1/2/4/
 | peak req/s | 249 | 454 | 457 | 410 |
 
 Takeaways:
-- This matches the customer's "~20 ms on B200 at conc 1" observation: served single-pair p50 on B200
-  is ~11 ms at conc 1 and stays ~15 ms through conc 8 while throughput climbs to ~454 req/s.
+- Served single-pair p50 on B200 is ~11 ms at conc 1 and stays ~15 ms through conc 8 while
+  throughput climbs to ~454 req/s.
+
 - At conc 1 the G4 is the fastest single request (6.7 ms). The GPUs scale throughput better at high
   concurrency (450+ req/s); the TPU tops out around ~249 req/s and its latency rises faster past conc 4.
 - On latency-based cost per 1000 requests (single pair, seq 512) the TPU and G4 are cheapest at low
@@ -213,7 +214,7 @@ any chip at any tested concurrency (long, heavy requests). Full numbers: `charts
 
 ## Sequence-length ("model length") sweep
 
-The seq-1024 rows above are the long-context / model-length comparison the customer asked about:
+The seq-1024 rows above are the long-context / model-length comparison:
 holding the request shape at 32 pairs, going from 512 to 1024 tokens per pair roughly doubles the
 per-request latency on every chip (as expected for ~2x the compute), and the price/perf ranking is
 preserved (TPU cheapest per request/pair, then G4/H200, then B200). Example at conc 1, bs32:

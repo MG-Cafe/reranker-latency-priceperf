@@ -3,7 +3,7 @@
 
 Checks, per results/conc_<dev>_seq<seq>_rb<rb>.json:
   - valid JSON; required top-level fields present and correct:
-      model, device, endpoint == .../v1/rerank, prefix_caching is False (customer rule),
+      model, device, endpoint == .../v1/rerank, prefix_caching is False (no-caching rule),
       seq_len_target in {512,1024}, req_batch in {1,32}, filename matches seq/rb metadata.
   - each by_concurrency row: concurrency in the requested set; iters>0; wall_s>0;
       percentiles monotonic p50<=p90<=p99; mean within [p50*0.5, p99*1.5] sanity band;

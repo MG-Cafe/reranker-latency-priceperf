@@ -7,7 +7,7 @@ Verifies (all must pass), so nothing is fabricated / hallucinated / inconsistent
     - each by_batch row: throughput_pairs_per_s ~= batch_size / (request_latency_ms_mean/1000)
     - percentiles monotonic: p50 <= p90 <= p95 <= p99
     - per_pair_latency_ms_mean ~= request_latency_ms_mean / batch_size
-    - prefix_caching is False (customer rule), seq_len target present
+    - prefix_caching is False (no-caching rule), seq_len target present
  2. Recompute BOTH price/perf views from raw latency JSON and confirm they match the numbers
     printed in charts/latency_priceperf_tables.md and in README.md:
     - throughput view: $/1M pairs = (price/3600)/pairs_per_s*1e6
@@ -44,7 +44,7 @@ for label, fn in FILES.items():
         fails.append(f"[{label}] missing results file {fn}"); continue
     d = json.load(open(p))
     if d.get("prefix_caching") is not False:
-        fails.append(f"[{label}] prefix_caching is not False (customer rule: no caching)")
+        fails.append(f"[{label}] prefix_caching is not False (no-caching rule)")
     if not d.get("seq_len_target"):
         fails.append(f"[{label}] seq_len_target missing")
     by = {}

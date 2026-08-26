@@ -77,7 +77,7 @@ section(512, 1, "Single-pair requests")
 section(512, 32, "Batch-32 requests")
 section(1024, 32, "Batch-32 requests, long context", concs=(1,2,4,8))
 
-# p90 < 100ms operating point at conc 4 (customer's rough target)
+# p90 < 100ms operating point at conc 4 (rough SLA target)
 L.append("## Operating point: p90 < 100 ms (rough SLA)\n")
 L.append("Highest concurrency at which each device keeps p90 < 100 ms, per workload:\n")
 def best_conc_under_p90(dev, seq, rb, limit=100.0):
