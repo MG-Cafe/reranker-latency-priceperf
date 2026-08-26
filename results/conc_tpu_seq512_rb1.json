@@ -1,0 +1,51 @@
+{
+  "model": "Qwen/Qwen3-Reranker-0.6B",
+  "device": "tpu v6e-1 (torchax)",
+  "endpoint": "http://localhost:8000/v1/rerank",
+  "prefix_caching": false,
+  "seq_len_target": 512,
+  "req_batch": 1,
+  "timestamp_utc": "2026-08-26T06:22:22Z",
+  "by_concurrency": [
+    {
+      "concurrency": 1,
+      "iters": 300,
+      "wall_s": 3.868,
+      "qps": 77.557,
+      "req_latency_ms_p50": 12.401,
+      "req_latency_ms_p90": 12.628,
+      "req_latency_ms_p99": 12.829,
+      "req_latency_ms_mean": 12.415
+    },
+    {
+      "concurrency": 2,
+      "iters": 300,
+      "wall_s": 2.389,
+      "qps": 125.601,
+      "req_latency_ms_p50": 15.463,
+      "req_latency_ms_p90": 15.645,
+      "req_latency_ms_p99": 15.834,
+      "req_latency_ms_mean": 15.452
+    },
+    {
+      "concurrency": 4,
+      "iters": 300,
+      "wall_s": 2.175,
+      "qps": 137.92,
+      "req_latency_ms_p50": 28.464,
+      "req_latency_ms_p90": 28.796,
+      "req_latency_ms_p99": 29.09,
+      "req_latency_ms_mean": 28.203
+    },
+    {
+      "concurrency": 8,
+      "iters": 300,
+      "wall_s": 1.206,
+      "qps": 248.796,
+      "req_latency_ms_p50": 30.744,
+      "req_latency_ms_p90": 31.718,
+      "req_latency_ms_p99": 32.593,
+      "req_latency_ms_mean": 30.75
+    }
+  ]
+}

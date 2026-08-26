@@ -1,0 +1,51 @@
+{
+  "model": "tomaarsen/Qwen3-Reranker-0.6B-seq-cls",
+  "device": "gpu 1x G4 RTX PRO 6000",
+  "endpoint": "http://localhost:8000/v1/rerank",
+  "prefix_caching": false,
+  "seq_len_target": 512,
+  "req_batch": 32,
+  "timestamp_utc": "2026-08-26T06:10:18Z",
+  "by_concurrency": [
+    {
+      "concurrency": 1,
+      "iters": 200,
+      "wall_s": 22.199,
+      "qps": 9.009,
+      "req_latency_ms_p50": 105.849,
+      "req_latency_ms_p90": 106.988,
+      "req_latency_ms_p99": 107.748,
+      "req_latency_ms_mean": 105.951
+    },
+    {
+      "concurrency": 2,
+      "iters": 200,
+      "wall_s": 13.986,
+      "qps": 14.3,
+      "req_latency_ms_p50": 134.465,
+      "req_latency_ms_p90": 158.74,
+      "req_latency_ms_p99": 161.388,
+      "req_latency_ms_mean": 134.706
+    },
+    {
+      "concurrency": 4,
+      "iters": 200,
+      "wall_s": 13.213,
+      "qps": 15.136,
+      "req_latency_ms_p50": 248.5,
+      "req_latency_ms_p90": 279.936,
+      "req_latency_ms_p99": 280.339,
+      "req_latency_ms_mean": 257.347
+    },
+    {
+      "concurrency": 8,
+      "iters": 200,
+      "wall_s": 13.253,
+      "qps": 15.091,
+      "req_latency_ms_p50": 533.215,
+      "req_latency_ms_p90": 534.158,
+      "req_latency_ms_p99": 534.487,
+      "req_latency_ms_mean": 515.524
+    }
+  ]
+}
