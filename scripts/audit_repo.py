@@ -88,17 +88,22 @@ for label, by in data.items():
         must(readme, cpm(price, r["throughput_pairs_per_s"]), f"README $/1M {label}")
         must(readme, c1k(price, r["request_latency_ms_p50"]), f"README $/1k {label}")
 
-# ---------- 4. chips-to-match math in tables ----------
+# ---------- 4. latency-match math in tables ----------
+# For each GPU batch, the fastest v6e batch whose p50 <= GPU p50, and its $/1k; must appear in tables.
 if tables and "TPU v6e (torchax)" in data:
     tpu = data["TPU v6e (torchax)"]
+    tbs = sorted(tpu)
     for gpu_label in ["B200 (1 GPU)", "H200 (1 GPU)", "G4 RTX PRO 6000 (1 GPU)"]:
         if gpu_label not in data: continue
-        for bs in sorted(set(tpu) & set(data[gpu_label])):
-            chips = math.ceil(data[gpu_label][bs]["throughput_pairs_per_s"] / tpu[bs]["throughput_pairs_per_s"])
-            fleet = round(chips * PRICE["TPU v6e (torchax)"], 2)
-            # spot check the computed fleet cost strings exist in the tables file
-            if f"${fleet}" not in tables:
-                fails.append(f"tables chips-to-match {gpu_label} bs{bs}: fleet ${fleet} not present")
+        for bs in sorted(data[gpu_label]):
+            gp = data[gpu_label][bs]["request_latency_ms_p50"]
+            ok = [b for b in tbs if tpu[b]["request_latency_ms_p50"] <= gp]
+            if ok:
+                mb = max(ok); mp = tpu[mb]["request_latency_ms_p50"]
+                t1k = c1k(PRICE["TPU v6e (torchax)"], mp)
+                if f"${t1k}" not in tables:
+                    fails.append(f"tables latency-match {gpu_label} bs{bs}: v6e $/1k ${t1k} not present")
+
 
 # ---------- 5. charts referenced exist ----------
 for m in re.findall(r"\(charts/([^)]+\.png)\)", readme):

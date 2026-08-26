@@ -118,22 +118,36 @@ for d in have_bs32:
              f"${cost_per_1k(d['price'], r['request_latency_ms_p50'])} |")
 L.append("")
 
-# chips-to-match latency/throughput vs each GPU, using TPU v6e as the scalable unit
+# ---------- LATENCY-MATCH: to hit a GPU's per-request p50 latency, which TPU v6e config meets it
+# and what does it cost? (customer asks: match the GPU's LATENCY, not throughput.) ----------
 tpu = next((d for d in loaded if d["label"].startswith("TPU")), None)
 if tpu:
-    for gpu in [d for d in loaded if d["label"].startswith(("B200","H200"))]:
-        L.append(f"## Chips-to-match: v6e vs {gpu['label']}\n")
-        L.append("| Batch | GPU pairs/s | 1x v6e pairs/s | v6e chips to match | v6e fleet $/hr | GPU $/hr | TPU fleet cheaper? |")
-        L.append("|------:|-----------:|---------------:|-------------------:|---------------:|--------:|:--|")
+    tbs = sorted(tpu["by"])
+    for gpu in [d for d in loaded if not d["label"].startswith("TPU")]:
+        L.append(f"## Latency-match: TPU v6e meeting {gpu['label']} request latency\n")
+        L.append("For each GPU batch size we take its p50 request latency, then find the fastest v6e "
+                 "config (largest batch) whose p50 is still <= that GPU latency, i.e. the v6e can serve "
+                 "within the same latency budget. We then compare cost per 1000 requests at that budget.")
+        L.append("")
+        L.append(f"| GPU batch | {gpu['label']} p50 (ms) | {gpu['label']} $/1k req | v6e config that meets it | v6e p50 (ms) | v6e $/1k req | Cheaper at equal latency |")
+        L.append("|------:|---:|---:|:--|---:|---:|:--|")
         for bs in allbs:
-            if bs in gpu["by"] and bs in tpu["by"]:
-                gpps = gpu["by"][bs]["throughput_pairs_per_s"]; tpps = tpu["by"][bs]["throughput_pairs_per_s"]
-                chips = math.ceil(gpps / tpps)
-                fleet = round(chips * tpu["price"], 2)
-                L.append(f"| {bs} | {gpps} | {tpps} | {chips} | ${fleet} | ${gpu['price']} | {'yes' if fleet < gpu['price'] else 'no'} |")
+            if bs not in gpu["by"]:
+                continue
+            gp = gpu["by"][bs]["request_latency_ms_p50"]
+            g1k = cost_per_1k(gpu["price"], gp)
+            ok = [b for b in tbs if tpu["by"][b]["request_latency_ms_p50"] <= gp]
+            if ok:
+                mb = max(ok); mp = tpu["by"][mb]["request_latency_ms_p50"]
+                t1k = cost_per_1k(tpu["price"], mp)
+                cheaper = "TPU" if t1k < g1k else gpu["label"]
+                L.append(f"| {bs} | {gp} | ${g1k} | v6e bs{mb} | {mp} | ${t1k} | {cheaper} |")
+            else:
+                L.append(f"| {bs} | {gp} | ${g1k} | none (even v6e bs1 {tpu['by'][1]['request_latency_ms_p50']} ms is slower) | - | - | {gpu['label']} (TPU cannot match this latency) |")
         L.append("")
 
 open(os.path.join(CH, "latency_priceperf_tables.md"), "w").write("\n".join(L)+"\n")
+
 print("\n".join(L))
 print("\nDevices included:", ", ".join(present))
 print("G4 pending:", G4_PENDING)

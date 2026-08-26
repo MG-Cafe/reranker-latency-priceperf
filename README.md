@@ -14,7 +14,8 @@ Scope and rules (per customer request):
   concurrent pairs in one real-time request, not an offline job.
 - Primary operating point: batch size 32, seq 512; plus a batch sweep (1..64).
 - Price/performance reported two ways: throughput-based (USD per 1M pairs) and latency-based
-  (USD per 1000 requests), plus a chips-to-match analysis.
+  (USD per 1000 requests), plus a latency-match analysis (match a GPU's latency, then compare cost).
+
 
 Prices (per chip-hour): TPU v6e $1.61, B200 $6.95, H200 $3.85, G4 (1x RTX PRO 6000) $3.11.
 
@@ -74,20 +75,30 @@ Notes:
   real-time reranking, G4 gives the best raw latency and TPU v6e the best cost.
 - The B200 pulls ahead at larger batches, as expected from its higher parallel throughput.
 
-## Chips-to-match analysis (how many v6e to match one GPU)
+## Latency-match analysis (match a GPU's latency, then compare cost)
 
-For each GPU, chips = ceil(GPU pairs/s / one-v6e pairs/s) to match that GPU's throughput; then the
-v6e fleet cost per hour is compared to the single GPU. Across all three GPUs and the whole batch
-range, a v6e fleet that matches throughput is still cheaper per hour (full tables in
-`charts/latency_priceperf_tables.md`). Examples at bs=32:
-- vs B200: 3x v6e = $4.83/hr vs $6.95/hr -> TPU cheaper.
-- vs H200: 2x v6e = $3.22/hr vs $3.85/hr -> TPU cheaper.
-- vs G4: 2x v6e = $3.22/hr vs $3.11/hr -> here the single G4 is actually slightly cheaper per hour at
-  bs=32 while also being faster, so G4 is the standout GPU for cost-sensitive low-latency serving.
+This is the comparison the customer asked for: for a given GPU request latency, find the TPU v6e
+configuration that serves within the same latency budget, then compare cost per 1000 requests. (We
+take each GPU batch's p50 latency, pick the fastest v6e batch whose p50 is still <= that latency, and
+compare $/1k requests.) Full tables for all batch sizes are in
+`charts/latency_priceperf_tables.md`.
 
-Caveat: matching throughput with more TPU chips does not lower single-request latency; if the SLA is
-strict per-request latency at high concurrency, the GPUs (B200 > H200 > G4) win on latency while the
-TPU wins on aggregate cost per pair.
+Result: at equal latency, the TPU v6e is cheaper in essentially every case. Examples:
+- Match B200 at its bs=32 latency (72.1 ms): v6e runs at bs=8 (50.3 ms, well within budget) for
+  $0.02249 / 1k req vs B200 $0.13923 / 1k -> TPU about 6.2x cheaper at the same latency.
+- Match H200 at its bs=32 latency (87.6 ms): v6e at bs=8 (50.3 ms) for $0.02249 / 1k vs H200
+  $0.09363 / 1k -> TPU about 4.2x cheaper.
+- Match G4 at its bs=32 latency (100.0 ms): v6e at bs=16 (92.3 ms) for $0.04129 / 1k vs G4 $0.08641 /
+  1k -> TPU about 2.1x cheaper.
+
+The one exception is ultra-low single-request latency: the G4 hits 7.1 ms at bs=1, which the v6e
+cannot match (its floor is ~10.8 ms), so if the SLA requires sub-10 ms per request the G4 is the only
+option here. Everywhere the TPU can meet the latency budget, it does so at lower cost.
+
+Note on price/performance ranking: the TPU v6e is the cheapest per pair and per request at every
+batch size (see the headline table). The G4 is the best-value GPU, but it is still more expensive than
+the TPU on both price/perf views.
+
 
 ## Reproduce
 
@@ -125,11 +136,12 @@ results/lat_gpu_b200.json      B200 latency sweep
 results/lat_gpu_h200.json      H200 latency sweep
 results/lat_gpu_g4.json        G4 (RTX PRO 6000) latency sweep
 scripts/reranker_latency_bench.py   latency bench (prefix caching off, fresh random content, seq 512)
-scripts/make_latency_priceperf.py   charts + tables (throughput and latency price/perf, chips-to-match)
+scripts/make_latency_priceperf.py   charts + tables (throughput and latency price/perf, latency-match)
 charts/latency_vs_batch.png, priceperf_latency_bs32.png, priceperf_throughput_bs32.png
 charts/latency_priceperf_tables.md
 ```
 
 ## Verification
 
-Run `python scripts/audit_repo.py` to verify end-to-end: it re-checks every results JSON for internal consistency (throughput = batch/latency, monotonic percentiles, prefix caching disabled, seq 512), recomputes both price/perf views and confirms they match the README and the generated tables, verifies every README latency/throughput number exists in the raw JSON, checks the chips-to-match math, confirms all referenced charts exist, and re-runs the table generator to confirm deterministic output. Current status: AUDIT PASSED.
+Run `python scripts/audit_repo.py` to verify end-to-end: it re-checks every results JSON for internal consistency (throughput = batch/latency, monotonic percentiles, prefix caching disabled, seq 512), recomputes both price/perf views and confirms they match the README and the generated tables, verifies every README latency/throughput number exists in the raw JSON, checks the latency-match math, confirms all referenced charts exist, and re-runs the table generator to confirm deterministic output. Current status: AUDIT PASSED.
+
