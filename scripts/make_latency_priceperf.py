@@ -4,8 +4,8 @@
 Real-time serving, prefix caching OFF, synthetic seq-len 512, fresh content per request.
 
 Chips (prices per chip-hour): TPU v6e $1.61, B200 $6.95, H200 $3.85, G4 (1x RTX PRO 6000) $3.11.
-G4 is pending host-side vGPU enablement (guest driver cannot attach the vGPU device yet), so it is
-included in the price table only if results/lat_gpu_g4.json exists; otherwise it is marked pending.
+A device is included only if its results/lat_gpu_*.json (or lat_tpu_*.json) file exists.
+
 
 Two price/perf views:
   1) Throughput-based: USD per 1M pairs = (price_per_hr/3600)/pairs_per_s*1e6.
@@ -87,8 +87,8 @@ L.append("# Latency-first price/performance across accelerators\n")
 L.append("Real-time serving; prefix caching OFF; synthetic seq-len 512; fresh content per request "
          "(no KV/prefix reuse). Prices per chip-hour: TPU v6e $1.61, B200 $6.95, H200 $3.85, G4 $3.11.")
 if G4_PENDING:
-    L.append("G4 (1x RTX PRO 6000): pending host-side vGPU enablement (guest driver cannot attach the "
-             "vGPU device on this SKU yet), so it is not in the measured tables below.")
+    L.append("G4 (1x RTX PRO 6000): results not available in this run; not shown in the tables below.")
+
 L.append("")
 
 L.append("## Request latency p50/p99 (ms) by batch size\n")
