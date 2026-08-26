@@ -112,7 +112,26 @@ if tables and "TPU v6e (torchax)" in data:
 
 
 
+# ---------- 4b. concurrency JSONs internal consistency (if present) ----------
+import glob as _glob
+for cf in sorted(_glob.glob(os.path.join(RES, "conc_*.json"))):
+    if os.path.getsize(cf) == 0:
+        fails.append(f"[conc] empty file {os.path.basename(cf)}"); continue
+    try:
+        cd = json.load(open(cf))
+    except Exception as e:
+        fails.append(f"[conc] {os.path.basename(cf)} invalid JSON: {e}"); continue
+    if cd.get("prefix_caching") is not False:
+        fails.append(f"[conc] {os.path.basename(cf)} prefix_caching not False")
+    for r in cd.get("by_concurrency", []):
+        seq = [r["req_latency_ms_p50"], r["req_latency_ms_p90"], r["req_latency_ms_p99"]]
+        if any(seq[i] > seq[i+1] + 1e-6 for i in range(len(seq)-1)):
+            fails.append(f"[conc] {os.path.basename(cf)} c{r['concurrency']} percentiles not monotonic: {seq}")
+        if r.get("qps", 0) <= 0:
+            fails.append(f"[conc] {os.path.basename(cf)} c{r['concurrency']} non-positive qps")
+
 # ---------- 5. charts referenced exist ----------
+
 for m in re.findall(r"\(charts/([^)]+\.png)\)", readme):
     if not os.path.exists(os.path.join(CH, m)):
         fails.append(f"README references missing chart charts/{m}")

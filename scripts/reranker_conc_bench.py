@@ -99,7 +99,8 @@ async def main_async(args):
     result = {"model": model, "device": args.device_label, "endpoint": url,
               "prefix_caching": False, "seq_len_target": args.seq_len, "req_batch": args.req_batch,
               "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "by_concurrency": []}
-    timeout = aiohttp.ClientTimeout(total=120)
+    timeout = aiohttp.ClientTimeout(total=600)
+
     _SESSION = aiohttp.ClientSession(timeout=timeout)
     try:
         for c in [int(x) for x in args.concurrencies.split(",")]:

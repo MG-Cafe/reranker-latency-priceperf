@@ -1,0 +1,41 @@
+{
+  "model": "tomaarsen/Qwen3-Reranker-0.6B-seq-cls",
+  "device": "gpu 1x H200",
+  "endpoint": "http://localhost:8000/v1/rerank",
+  "prefix_caching": false,
+  "seq_len_target": 1024,
+  "req_batch": 32,
+  "timestamp_utc": "2026-08-26T14:33:40Z",
+  "by_concurrency": [
+    {
+      "concurrency": 1,
+      "iters": 120,
+      "wall_s": 22.384,
+      "qps": 5.361,
+      "req_latency_ms_p50": 175.478,
+      "req_latency_ms_p90": 178.714,
+      "req_latency_ms_p99": 180.494,
+      "req_latency_ms_mean": 175.977
+    },
+    {
+      "concurrency": 2,
+      "iters": 120,
+      "wall_s": 11.759,
+      "qps": 10.205,
+      "req_latency_ms_p50": 183.429,
+      "req_latency_ms_p90": 187.333,
+      "req_latency_ms_p99": 212.304,
+      "req_latency_ms_mean": 184.658
+    },
+    {
+      "concurrency": 4,
+      "iters": 120,
+      "wall_s": 10.898,
+      "qps": 11.011,
+      "req_latency_ms_p50": 348.934,
+      "req_latency_ms_p90": 352.605,
+      "req_latency_ms_p99": 495.276,
+      "req_latency_ms_mean": 349.862
+    }
+  ]
+}

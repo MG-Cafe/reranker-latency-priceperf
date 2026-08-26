@@ -1,0 +1,41 @@
+{
+  "model": "Qwen/Qwen3-Reranker-0.6B",
+  "device": "tpu v6e-1 (torchax)",
+  "endpoint": "http://localhost:8000/v1/rerank",
+  "prefix_caching": false,
+  "seq_len_target": 1024,
+  "req_batch": 32,
+  "timestamp_utc": "2026-08-26T06:42:27Z",
+  "by_concurrency": [
+    {
+      "concurrency": 1,
+      "iters": 120,
+      "wall_s": 41.909,
+      "qps": 2.625,
+      "req_latency_ms_p50": 355.952,
+      "req_latency_ms_p90": 357.217,
+      "req_latency_ms_p99": 412.871,
+      "req_latency_ms_mean": 357.498
+    },
+    {
+      "concurrency": 2,
+      "iters": 120,
+      "wall_s": 29.066,
+      "qps": 3.991,
+      "req_latency_ms_p50": 480.343,
+      "req_latency_ms_p90": 482.032,
+      "req_latency_ms_p99": 483.08,
+      "req_latency_ms_mean": 479.518
+    },
+    {
+      "concurrency": 4,
+      "iters": 120,
+      "wall_s": 26.53,
+      "qps": 3.995,
+      "req_latency_ms_p50": 977.128,
+      "req_latency_ms_p90": 983.107,
+      "req_latency_ms_p99": 1012.227,
+      "req_latency_ms_mean": 961.537
+    }
+  ]
+}

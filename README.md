@@ -110,7 +110,43 @@ batch size (see the headline table). The G4 is the best-value GPU, but it is sti
 the TPU on both price/perf views.
 
 
+## Concurrency sweep (served vLLM, real-time load)
+
+In addition to the single-request latency study above, we ran a served-endpoint concurrency sweep
+(`vllm serve` + async client hitting `/v1/rerank`, prefix caching OFF, fresh content per request) to
+show behaviour under simultaneous in-flight requests. Full tables and charts:
+`charts/concurrency_tables.md`, `charts/concurrency_seq512_rb1_p50.png`,
+`charts/concurrency_seq512_rb1_qps.png`, plus rb32 and seq1024 variants.
+
+Single-pair requests (seq 512), p50 latency and requests/s at concurrency 1/2/4/8:
+
+| Conc | TPU v6e p50 | B200 p50 | H200 p50 | G4 p50 |
+|---:|---:|---:|---:|---:|
+| 1 | 12.4 ms | 11.1 ms | 10.4 ms | 6.7 ms |
+| 2 | 15.5 ms | 14.1 ms | 13.1 ms | 8.5 ms |
+| 4 | 28.5 ms | 14.8 ms | 13.6 ms | 11.7 ms |
+| 8 | 30.7 ms | 15.5 ms | 14.9 ms | 18.8 ms |
+| peak req/s | 249 | 454 | 457 | 410 |
+
+Takeaways:
+- This matches the customer's "~20 ms on B200 at conc 1" observation: served single-pair p50 on B200
+  is ~11 ms at conc 1 and stays ~15 ms through conc 8 while throughput climbs to ~454 req/s.
+- At conc 1 the G4 is the fastest single request (6.7 ms). The GPUs scale throughput better at high
+  concurrency (450+ req/s); the TPU tops out around ~249 req/s and its latency rises faster past conc 4.
+- On latency-based cost per 1000 requests (single pair, seq 512) the TPU and G4 are cheapest at low
+  concurrency; e.g. at conc 1 TPU $0.00555, G4 $0.00582, H200 $0.0111, B200 $0.02148 per 1k requests.
+
+Heavier workloads (batch-32-per-request) and long context (seq 1024) are in
+`charts/concurrency_tables.md`. For a rough p90 < 100 ms SLA: single-pair requests hold p90 < 100 ms
+through conc 8 on all four chips; a bs32-per-request workload only holds p90 < 100 ms at conc 1 on
+B200 and H200 (the others exceed it), i.e. large per-request batches should be kept to low concurrency
+or split into smaller requests.
+
+![Single-pair p50 vs concurrency](charts/concurrency_seq512_rb1_p50.png)
+![Single-pair throughput vs concurrency](charts/concurrency_seq512_rb1_qps.png)
+
 ## Reproduce
+
 
 TPU v6e (torchax / tpu-inference):
 ```bash
